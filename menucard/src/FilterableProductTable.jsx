@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 function FilterableProductTable() {
     const PRODUCTS = [
@@ -9,31 +9,40 @@ function FilterableProductTable() {
         {category: "Vegetables", price: "$4", stocked: false, name: "Pumpkin"},
         {category: "Vegetables", price: "$1", stocked: true, name: "Peas"}
       ];
+    const [filterText,setFilterText] = useState('');
+    const [inStockOnly,setInStockOnly] = useState(false);
   return (
     <>
-    <SearchBar />
-    <ProductTable products={PRODUCTS}/>
+    <SearchBar filterText={filterText} inStockOnly={inStockOnly} onFilterTextChange={setFilterText} onInStockOnlyChange={setInStockOnly}/>
+    <ProductTable products={PRODUCTS} filterText={filterText} inStockOnly={inStockOnly}/>
     </>
   )
 }
-function SearchBar(){
+function SearchBar({filterText,inStockOnly,onFilterTextChange,onInStockOnlyChange}){
     return(
         <>
     <div>
-        <input type="text" placeholder='Search....'/>
+        <input type="text" value={filterText} placeholder='Search....' onChange={(e) => onFilterTextChange(e.target.value)}/>
     </div>
     <div>
-        <input type="checkbox" id='checkbox'/>
+        <input type="checkbox" id='checkbox' checked={inStockOnly} onChange={(e) => onInStockOnlyChange(e.target.checked)}/>
         <label htmlFor="checkbox">check it</label>
     </div>
     </>
     );
 }
 
-function ProductTable({products}){
+function ProductTable({products,filterText,inStockOnly}){
     const rows = [];
     let lastCategory = null;
     products.forEach((product) => {
+        if(
+            product.name.toLowerCase().indexOf(filterText.toLowerCase()) === -1){
+            return;
+        }
+        if(inStockOnly && !product.stocked){
+            return;
+        }
         if(product.category !== lastCategory){
             rows.push(
                 <ProductCategoryRow 
@@ -47,7 +56,7 @@ function ProductTable({products}){
                 key = {product.name}/>
         );
         lastCategory = product.category;
-    })
+    });
     return(
         <>
         <table>
